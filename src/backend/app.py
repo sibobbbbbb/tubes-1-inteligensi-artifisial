@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import io
 import base64
 from genetic import *
+from simulatedAnnealing import *
 
 app = Flask(__name__)
 CORS(app)
@@ -97,29 +98,63 @@ def hill_climbing(cube, variant="steepest_ascent", max_sideways=10, max_restarts
 
 
 # Simulated Annealing
-def simulated_annealing(cube, initial_temp=1000, cooling_rate=0.003):
-    current_state = cube
-    current_value = objective_function(current_state)
-    temp = initial_temp
-    objective_values = [current_value]
+def simulated_annealing(cube, max_iter=100000, initial_temp=10000, cooling_rate=0.77, threshold=0.5):
+    current_cube = cube.copy()
+    initial_cube = cube.copy()
+    current_deviation = calculate_total_deviation(current_cube, 315)
+    best_cube = current_cube.copy()
+    best_deviation = current_deviation
+    deviations = [current_deviation]
+    
+    temperature = initial_temp
+    start_time = time.time()
     iterations = 0
 
-    while temp > 1:
-        neighbor = generate_neighbor(current_state)
-        next_value = objective_function(neighbor)
+    for iteration in range(max_iter):
+        # Randomly select two positions to swap
+        x1, y1, z1 = np.random.randint(0, n, 3)
+        x2, y2, z2 = np.random.randint(0, n, 3)
+        while (x1, y1, z1) == (x2, y2, z2):  
+            x2, y2, z2 = np.random.randint(0, n, 3)
 
-        # Calculate probability and decide to accept or reject the neighbor
-        if next_value > current_value or random.uniform(0, 1) < np.exp((next_value - current_value) / temp):
-            current_state, current_value = neighbor, next_value
+        current_cube[x1, y1, z1], current_cube[x2, y2, z2] = current_cube[x2, y2, z2], current_cube[x1, y1, z1]
+        new_deviation = calculate_total_deviation(current_cube, 315)
 
-        temp *= (1 - cooling_rate)
-        objective_values.append(current_value)
-        iterations += 1
+        if new_deviation < current_deviation:
+            current_deviation = new_deviation
+            if current_deviation < best_deviation:
+                best_deviation = current_deviation
+                best_cube = current_cube.copy()
+        elif np.exp((current_deviation - new_deviation) / temperature) > threshold :
+            current_deviation = new_deviation
+            if current_deviation < best_deviation:
+                best_deviation = current_deviation
+                best_cube = current_cube.copy()
+        else:
+            # Revert the swap if not accepted
+            current_cube[x1, y1, z1], current_cube[x2, y2, z2] = current_cube[x2, y2, z2], current_cube[x1, y1, z1]
+
+        deviations.append(current_deviation)
+
+        # Cooling schedule
+        temperature *= cooling_rate
+        if current_deviation == 0:
+            break
+
+        if temperature < 1 :
+            break
+
+        iterations = iterations + 1
+
+    end_time = time.time()
+    duration = end_time - start_time
 
     return {
-        "final_state": current_state.tolist(),
-        "objective_value": current_value,
-        "objective_values": objective_values,
+        "initial_state" : initial_cube.tolist(),
+        "final_state": best_cube.tolist(),
+        "objective_value": best_deviation,
+        "objective_values": deviations,
+        "duration": duration,
         "iterations": iterations
     }
 
@@ -188,6 +223,11 @@ def run_experiment():
     size = data.get("size", 5)
     iterations = data.get("iterations", 1000)
     population_size = data.get("population_size", 50)
+
+    if algorithm == "simulated_annealing":
+        temperature = data.get("temperature")
+        threshold = data.get("threshold")
+        cooling_rate = data.get("cooling_rate")
     
     cube = create_initial_cube(size)
     initial_state = cube.copy()
@@ -197,7 +237,7 @@ def run_experiment():
     if algorithm == "hill_climbing":
         result = hill_climbing(cube, variant=data.get("variant", "steepest_ascent"))
     elif algorithm == "simulated_annealing":
-        result = simulated_annealing(cube)
+        result = simulated_annealing(cube, 10000, temperature, cooling_rate, threshold)
     elif algorithm == "genetic_algorithm":
         result = genetic_algorithm(cube,population_size, iterations)
     
