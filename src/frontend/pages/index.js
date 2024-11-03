@@ -98,6 +98,7 @@ export default function Home() {
         objectiveValue: result.objective_value,
         duration: result.duration.toFixed(2),
         plot: result.plot,
+        iterations: result.iterations,
       };
       
       setExperimentResult(resultData);
@@ -180,6 +181,7 @@ export default function Home() {
           <div className="mt-4 p-4 bg-abu">
             <p><strong>Objective Value:</strong> {experimentResult.objectiveValue}</p>
             <p><strong>Duration:</strong> {experimentResult.duration} seconds</p>
+            <p><strong>Iterations:</strong> {experimentResult.iterations}</p>
 
              {/* Display the plot with click-to-expand feature */}
              {experimentResult.plot && (

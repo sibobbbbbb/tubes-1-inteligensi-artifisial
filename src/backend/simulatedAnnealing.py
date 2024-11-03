@@ -209,9 +209,9 @@ def run_simulated_annealing_experiments(initial_cube, S, n=5):
 
 
 # Run the Simulated Annealing algorithm
-initial_cube = initialize_cube(n)
-# final_cube, final_deviation, deviations, duration = simulated_annealing(initial_cube, S)
-best_params, best_deviation = run_simulated_annealing_experiments(initial_cube, S, n)
+# initial_cube = initialize_cube(n)
+# # final_cube, final_deviation, deviations, duration = simulated_annealing(initial_cube, S)
+# best_params, best_deviation = run_simulated_annealing_experiments(initial_cube, S, n)
 
 # # Output results
 # print("Initial Cube State:\n", initial_cube)

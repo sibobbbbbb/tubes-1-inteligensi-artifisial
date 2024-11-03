@@ -181,6 +181,7 @@ def genetic_algorithm(init,n_population, n_generations=100, elitism_rate=0.1):
     cost, best_array = min(cost_and_cubes, key=lambda x: x[0])
 
     return {
+        "iterations": n_generations,
         "initial_state": init.tolist(),
         "final_state": best_array.tolist(),
         "objective_value": int(cost),
@@ -253,7 +254,8 @@ def run_experiment():
         "final_state": np.array(result['final_state']).tolist(),  # Ensure final_state is a list
         "objective_value": int(result['objective_value']),  # Convert numpy int to native int
         "duration": float(duration),  # Convert to native float
-        "plot": plot_url
+        "plot": plot_url,
+        "iterations": result["iterations"]  # Ensure iterations
     })
 
 if __name__ == '__main__':
