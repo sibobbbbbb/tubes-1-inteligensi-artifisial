@@ -7,7 +7,7 @@ import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-500"></div>
     </div>
   );
 }
@@ -29,11 +29,13 @@ function FullscreenLoadingOverlay() {
 }
 
 export default function Home() {
-  const [cubeState, setCubeState] = useState([]);
+  const [initialState, setInitialState] = useState([]); // Store initial cube state
+  const [finalState, setFinalState] = useState([]); // Store final cube state
   const [experimentResult, setExperimentResult] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [gap, setGap] = useState(1.2); // New state for dynamic gap
-  const [loading, setLoading] = useState(false); // New loading state for experiment execution
+  const [gap, setGap] = useState(1.2);
+  const [loading, setLoading] = useState(false);
+  const [showFinalState, setShowFinalState] = useState(false); // Toggle for final/initial state
 
   // Typing animation state
   const [displayedText, setDisplayedText] = useState('');
@@ -62,7 +64,7 @@ export default function Home() {
     // Fetch initial cube state from Flask backend
     fetch('http://localhost:5000/api/cube-state')
       .then((res) => res.json())
-      .then((data) => setCubeState(data))
+      .then((data) => setInitialState(data)) // Set initial state once fetched
       .catch((error) => console.error("Failed to fetch initial cube state:", error));
   }, []);
 
@@ -75,7 +77,7 @@ export default function Home() {
         body: JSON.stringify(config),
       });
       const result = await response.json();
-      setCubeState(result.final_state);
+      setFinalState(result.final_state); // Store the final state received from the experiment
       setExperimentResult({
         objectiveValue: result.objective_value,
         duration: result.duration.toFixed(2),
@@ -109,10 +111,11 @@ export default function Home() {
       </header>
 
       {/* Fullscreen 3D Cube Canvas */}
-      <MagicCube cubeState={cubeState} gap={gap} />
+      <MagicCube cubeState={showFinalState ? finalState : initialState} gap={gap} />
 
       {/* Sidebar */}
-      <div className={`fixed top-0 right-0 h-full w-64 bg-overlayBlack shadow-lg p-4 transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 z-20`}>
+      <div className={`fixed top-0 right-0 h-full w-64 bg-overlayBlack shadow-lg p-4 overflow-y-auto transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 z-20`}>
+
         
         {/* Close Button at the top of the sidebar */}
         <button onClick={() => setIsSidebarOpen(false)} className="absolute top-4 right-4">
@@ -123,6 +126,21 @@ export default function Home() {
         
         {/* Experiment Form */}
         <ExperimentForm onSubmit={handleExperimentSubmit} />
+
+        {/* Toggle for Initial/Final State */}
+        <div className="mt-4 p-4 bg-abu">
+          <label className="text-white">Display State:</label>
+          <div className="flex items-center mt-2">
+            <span className="text-white mr-2">Initial</span>
+            <input
+              type="checkbox"
+              className="toggle-checkbox"
+              checked={showFinalState}
+              onChange={() => setShowFinalState(!showFinalState)}
+            />
+            <span className="text-white ml-2">Final</span>
+          </div>
+        </div>
 
         {/* Gap Control Slider */}
         <div className="mt-4 p-4 bg-abu">
