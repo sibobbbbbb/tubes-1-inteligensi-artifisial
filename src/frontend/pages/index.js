@@ -3,17 +3,27 @@ import dynamic from 'next/dynamic';
 import ExperimentForm from '../components/ExperimentForm';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 
+// Loading spinner component for dynamic import
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+    </div>
+  );
+}
+
 // Dynamically import MagicCube without SSR
 const MagicCube = dynamic(() => import('../components/MagicCube'), { 
   ssr: false,
   loading: () => <LoadingSpinner /> // Show LoadingSpinner while MagicCube is loading
 });
 
-// Loading spinner component
-function LoadingSpinner() {
+// Fullscreen loading overlay component
+function FullscreenLoadingOverlay() {
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 "></div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+      <p className="text-white mt-4 text-lg">Running experiment...</p>
     </div>
   );
 }
@@ -23,6 +33,7 @@ export default function Home() {
   const [experimentResult, setExperimentResult] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [gap, setGap] = useState(1.2); // New state for dynamic gap
+  const [loading, setLoading] = useState(false); // New loading state for experiment execution
 
   // Typing animation state
   const [displayedText, setDisplayedText] = useState('');
@@ -56,6 +67,7 @@ export default function Home() {
   }, []);
 
   const handleExperimentSubmit = async (config) => {
+    setLoading(true); // Set loading to true when experiment starts
     try {
       const response = await fetch('http://localhost:5000/api/run-experiment', {
         method: 'POST',
@@ -71,11 +83,16 @@ export default function Home() {
       });
     } catch (error) {
       console.error("Failed to run experiment:", error);
+    } finally {
+      setLoading(false); // Set loading to false once the experiment completes
     }
   };
 
   return (
     <div className="relative w-full h-screen">
+      {/* Show Fullscreen Loading Overlay when loading is true */}
+      {loading && <FullscreenLoadingOverlay />}
+
       {/* Navbar with Hamburger Icon */}
       <header className="fixed top-0 left-0 w-full bg-overlayBlack text-white flex justify-between items-center p-4 z-10">
         <h1 
@@ -91,8 +108,8 @@ export default function Home() {
         </button>
       </header>
 
-      {/* Fullscreen 3D Cube Canvas or Loading Spinner */}
-      <MagicCube cubeState={cubeState} gap={gap} /> {/* Pass gap as a prop */}
+      {/* Fullscreen 3D Cube Canvas */}
+      <MagicCube cubeState={cubeState} gap={gap} />
 
       {/* Sidebar */}
       <div className={`fixed top-0 right-0 h-full w-64 bg-overlayBlack shadow-lg p-4 transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 z-20`}>
@@ -108,7 +125,7 @@ export default function Home() {
         <ExperimentForm onSubmit={handleExperimentSubmit} />
 
         {/* Gap Control Slider */}
-        <div className="mt-4 p-4 bg-abu">
+        <div className="mt-4">
           <label htmlFor="gap" className="text-white">Adjust Gap:</label>
           <input
             type="range"
@@ -124,7 +141,7 @@ export default function Home() {
         </div>
 
         {/* Display Experiment Results */}
-        {experimentResult && (
+        {experimentResult && !loading && (
           <div className="mt-4 p-4 bg-abu">
             <p><strong>Objective Value:</strong> {experimentResult.objectiveValue}</p>
             <p><strong>Duration:</strong> {experimentResult.duration} seconds</p>
