@@ -125,7 +125,7 @@ export default function Home() {
         <ExperimentForm onSubmit={handleExperimentSubmit} />
 
         {/* Gap Control Slider */}
-        <div className="mt-4">
+        <div className="mt-4 p-4 bg-abu">
           <label htmlFor="gap" className="text-white">Adjust Gap:</label>
           <input
             type="range"
