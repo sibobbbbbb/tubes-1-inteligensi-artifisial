@@ -7,7 +7,7 @@ import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-500"></div>
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4"></div>
     </div>
   );
 }
@@ -78,6 +78,10 @@ export default function Home() {
       });
       const result = await response.json();
       setFinalState(result.final_state); // Store the final state received from the experiment
+      
+      // Automatically switch to final state view
+      setShowFinalState(true);
+
       const resultData = {
         initialState: result.initial_state,
         finalState: result.final_state,
@@ -120,7 +124,6 @@ export default function Home() {
       {/* Sidebar */}
       <div className={`fixed top-0 right-0 h-full w-64 bg-overlayBlack shadow-lg p-4 overflow-y-auto transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 z-20`}>
 
-        
         {/* Close Button at the top of the sidebar */}
         <button onClick={() => setIsSidebarOpen(false)} className="absolute top-4 right-4">
           <AiOutlineClose size={24} />
