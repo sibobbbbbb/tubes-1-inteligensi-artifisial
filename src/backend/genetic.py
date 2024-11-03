@@ -9,7 +9,7 @@ def genetic_algorithm(n_population, n_generations=100, elitism_rate=0.1):
 
     # State awal dari kubus
     cubes = random_population(n_population)
-    initial_state = cubes[0].copy()  # Menyimpan state awal dari kubus pertama
+    initial_state = cubes[0].copy() 
     
     max_fitness_per_generation = []
     avg_fitness_per_generation = []
@@ -192,28 +192,13 @@ def mutation(results,mutation_rate = 0.1):
                 if len(duplicate_index[0]) > 0:
                     results[i][duplicate_index[0][0], duplicate_index[1][0], duplicate_index[2][0]] = miss
         
+        # random dua posisi untuk ditukar 
         if random.random() < mutation_rate:
-            # Pilih dua posisi acak untuk ditukar dalam `results[i]`
             idx1, idx2 = random.sample(range(125), 2)
             pos1 = np.unravel_index(idx1, (5, 5, 5))
             pos2 = np.unravel_index(idx2, (5, 5, 5))
-            # Tukar elemen di dua posisi acak tersebut
+            
             results[i][pos1], results[i][pos2] = results[i][pos2], results[i][pos1]
-        
-        current_63_position = np.argwhere(results[i] == 63)
-        
-        # Jika ada lebih dari satu nilai 63, abaikan semua kecuali yang pertama ditemukan
-        if len(current_63_position) > 1:
-            # Ganti semua nilai 63 tambahan menjadi nilai yang hilang (contohnya, `missing[0]`)
-            for extra_63_position in current_63_position[1:]:
-                results[i][tuple(extra_63_position)] = missing.pop(0)
-            current_63_position = current_63_position[:1]  # Hanya sisakan satu posisi 63
-        
-        # Jika nilai 63 tidak berada di posisi tengah, tukar dengan nilai yang ada di tengah
-        if tuple(current_63_position[0]) != (2, 2, 2):
-            temp = results[i][2][2][2]  # Simpan nilai di tengah
-            results[i][2][2][2] = 63
-            results[i][tuple(current_63_position[0])] = temp
             
         final.append(results[i])
     
@@ -223,12 +208,3 @@ def mutation(results,mutation_rate = 0.1):
 def is_cube_unique(cube):
     flattened_cube = cube.flatten()
     return len(flattened_cube) == len(set(flattened_cube))
-
-# start_time = time.time()
-# cost, best_array = genetic_algorithm(n_population=200, n_generations=100)
-# end_time = time.time()
-# execution_time = end_time - start_time
-# print(f"Waktu eksekusi: {execution_time} detik")
-# print(cost)
-
-# genetic_algorithm(n_population=50, n_generations=100)
