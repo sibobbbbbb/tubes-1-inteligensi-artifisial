@@ -25,7 +25,6 @@ function createTextTexture(number, backgroundColor) {
   return new THREE.CanvasTexture(canvas);
 }
 
-
 // Helper function to generate a slightly brighter color palette
 function generateColor(index) {
   const colors = [
@@ -48,12 +47,11 @@ function generateColor(index) {
   return colors[index % colors.length];
 }
 
-
-// Helper component to render each cube box with a texture that includes color and optionally a number
-function CubeBox({ position, color, number, isVisible }) {
+// Helper component to render each cube box with a texture that includes color and the number
+function CubeBox({ position, color, number }) {
   const texture = useMemo(
-    () => createTextTexture(isVisible ? number : null, color),
-    [number, color, isVisible]
+    () => createTextTexture(number, color),
+    [number, color]
   );
 
   return (
@@ -99,18 +97,17 @@ function StarField() {
   );
 }
 
-
-export default function MagicCube({ cubeState }) {
+export default function MagicCube({ cubeState, gap }) {
   const cubeSize = 5;
 
   const positions = useMemo(
     () =>
       Array.from({ length: cubeSize * cubeSize * cubeSize }, (_, index) => [
-        (index % cubeSize) - 2,
-        Math.floor((index / cubeSize) % cubeSize) - 2,
-        Math.floor(index / (cubeSize * cubeSize)) - 2,
+        ((index % cubeSize) - 2) * gap,
+        (Math.floor((index / cubeSize) % cubeSize) - 2) * gap,
+        (Math.floor(index / (cubeSize * cubeSize)) - 2) * gap,
       ]),
-    [cubeSize]
+    [cubeSize, gap]
   );
 
   return (
@@ -132,12 +129,10 @@ export default function MagicCube({ cubeState }) {
           const y = Math.floor((index % (cubeSize * cubeSize)) / cubeSize);
           const x = index % cubeSize;
           const number = cubeState[z]?.[y]?.[x] || null;
-
-          const isVisible = x === 0 || x === cubeSize - 1 || y === 0 || y === cubeSize - 1 || z === 0 || z === cubeSize - 1;
           const color = generateColor(index);
 
           return (
-            <CubeBox key={index} position={position} color={color} number={number} isVisible={isVisible} />
+            <CubeBox key={index} position={position} color={color} number={number} />
           );
         })}
       </group>
