@@ -21,7 +21,8 @@ function LoadingSpinner() {
 export default function Home() {
   const [cubeState, setCubeState] = useState([]);
   const [experimentResult, setExperimentResult] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar open/close state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [gap, setGap] = useState(1.2); // New state for dynamic gap
 
   // Typing animation state
   const [displayedText, setDisplayedText] = useState('');
@@ -29,43 +30,31 @@ export default function Home() {
 
   useEffect(() => {
     let index = 0;
-  
     const typeText = () => {
-      setDisplayedText(fullText.substring(0, index + 1)); // Tampilkan teks dari awal hingga indeks saat ini
+      setDisplayedText(fullText.substring(0, index + 1));
       index += 1;
-  
       if (index === fullText.length) {
-        // Jika sudah sampai di akhir teks, reset indeks dan teks setelah jeda
         setTimeout(() => {
           index = 0;
-          setDisplayedText(''); // Kosongkan teks untuk memulai kembali
-          typeText(); // Panggil lagi untuk memulai dari awal
-        }, 2000); // Jeda 1 detik sebelum mulai lagi
+          setDisplayedText('');
+          typeText();
+        }, 2000);
       } else {
-        // Lanjutkan ke karakter berikutnya
-        setTimeout(typeText, 150); // Atur kecepatan pengetikan
+        setTimeout(typeText, 150);
       }
     };
-  
-    typeText(); // Mulai animasi pertama kali
-  
-    return () => setDisplayedText(''); // Bersihkan teks saat komponen di-unmount
+    typeText();
+    return () => setDisplayedText('');
   }, []);
-  
-  
 
   useEffect(() => {
     // Fetch initial cube state from Flask backend
     fetch('http://localhost:5000/api/cube-state')
       .then((res) => res.json())
-      .then((data) => {
-        console.log(data); // Log data for debugging
-        setCubeState(data);
-      })
+      .then((data) => setCubeState(data))
       .catch((error) => console.error("Failed to fetch initial cube state:", error));
   }, []);
 
-  // Function to handle experiment form submission
   const handleExperimentSubmit = async (config) => {
     try {
       const response = await fetch('http://localhost:5000/api/run-experiment', {
@@ -74,15 +63,11 @@ export default function Home() {
         body: JSON.stringify(config),
       });
       const result = await response.json();
-
-      // Update the cube with the final state from the experiment
       setCubeState(result.final_state);
-      
-      // Update experiment results to display parameters in form container
       setExperimentResult({
         objectiveValue: result.objective_value,
         duration: result.duration.toFixed(2),
-        plot: result.plot, // Store plot image as base64 string
+        plot: result.plot,
       });
     } catch (error) {
       console.error("Failed to run experiment:", error);
@@ -107,7 +92,7 @@ export default function Home() {
       </header>
 
       {/* Fullscreen 3D Cube Canvas or Loading Spinner */}
-      <MagicCube cubeState={cubeState} />
+      <MagicCube cubeState={cubeState} gap={gap} /> {/* Pass gap as a prop */}
 
       {/* Sidebar */}
       <div className={`fixed top-0 right-0 h-full w-64 bg-overlayBlack shadow-lg p-4 transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 z-20`}>
@@ -121,6 +106,22 @@ export default function Home() {
         
         {/* Experiment Form */}
         <ExperimentForm onSubmit={handleExperimentSubmit} />
+
+        {/* Gap Control Slider */}
+        <div className="mt-4 p-4 bg-abu">
+          <label htmlFor="gap" className="text-white">Adjust Gap:</label>
+          <input
+            type="range"
+            id="gap"
+            min="1.0"
+            max="2.0"
+            step="0.1"
+            value={gap}
+            onChange={(e) => setGap(parseFloat(e.target.value))}
+            className="w-full mt-2"
+          />
+          <p className="text-white mt-1">Gap: {gap}</p>
+        </div>
 
         {/* Display Experiment Results */}
         {experimentResult && (
