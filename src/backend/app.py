@@ -8,6 +8,7 @@ import io
 import base64
 from genetic import *
 from simulatedAnnealing import *
+from hillClimbing import *
 
 app = Flask(__name__)
 CORS(app)
@@ -33,67 +34,45 @@ def generate_neighbor(cube):
     return neighbor
 
 # Hill-Climbing Algorithm Variants
-def hill_climbing(cube, variant="steepest_ascent", max_sideways=10, max_restarts=10):
-    current_state = cube
-    current_value = objective_function(current_state)
-    objective_values = [current_value]
-    iterations = 0
-    sideways_moves = 0
-    restarts = 0
+def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=8):
+    if variant == "steepest_ascent":
+        hillClimber = SteepestAscent(Cube(cube.copy()))
+    elif variant == "stochastic":
+        hillClimber = StochasticHC(Cube(cube.copy()))
+    elif variant == "sideways":
+        hillClimber = SidewaysMovement(Cube(cube.copy(), max_sideways))
+    elif variant == "random_restart":
+        hillClimber = RandomRestart(Cube(cube.copy(), max_restarts))
+    else:
+        raise "There is no such variant!"
+    
+    startTime = time.time()
+    
+    hillClimber.search()
 
-    while restarts <= max_restarts:
-        # Generate neighbors
-        neighbors = [generate_neighbor(current_state) for _ in range(20)]
-        
-        # Initialize next_state to None at the start of each loop iteration
-        next_state = None
+    duration = time.time() - startTime
+    
+    current_state = hillClimber.state.cube
+    current_value = hillClimber.state.value
+    objective_values = hillClimber.objectiveValues
+    iterations = hillClimber.iteration
 
-        # Determine next state based on the variant
-        if variant == "steepest_ascent":
-            # Choose the neighbor with the highest objective value
-            if neighbors:
-                next_state = max(neighbors, key=objective_function)
-        elif variant == "stochastic":
-            # Randomly pick one of the neighbors that improves the objective value
-            improving_neighbors = [n for n in neighbors if objective_function(n) >= current_value]
-            if improving_neighbors:
-                next_state = random.choice(improving_neighbors)
-        elif variant == "sideways":
-            if neighbors:
-                next_state = max(neighbors, key=objective_function)
-                if next_state and objective_function(next_state) == current_value:
-                    sideways_moves += 1
-                    if sideways_moves > max_sideways:
-                        break
-                else:
-                    sideways_moves = 0  # Reset sideways moves if there's an improvement
-
-        # Ensure `next_state` is defined and not None before proceeding
-        if next_state is None:
-            # If no valid moves are found, and no valid `next_state` is set, break the loop
-            break
-
-        next_value = objective_function(next_state)
-
-        # Stopping condition if no improvement
-        if next_value <= current_value:
-            if variant == "random_restart":
-                current_state = create_initial_cube()
-                current_value = objective_function(current_state)
-                restarts += 1
-            else:
-                break
-        else:
-            current_state, current_value = next_state, next_value
-            objective_values.append(current_value)
-            iterations += 1
-
-    return {
+    result = {
+        "initial_state": cube.tolist(),
         "final_state": current_state.tolist(),
         "objective_value": current_value,
         "objective_values": objective_values,
-        "iterations": iterations
+        "iterations": iterations,
+        "duration" : duration
     }
+
+    if variant == "sideways":
+        result["sideways_moves"] = max_sideways
+    elif variant == "random_restart":
+        result["restart_number"] = hillClimber.maxRestart
+        result["restart_iterations"] = hillClimber.iterationsPerRestart
+
+    return result
 
 
 
