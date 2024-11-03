@@ -149,7 +149,7 @@ export default function Home() {
             type="range"
             id="gap"
             min="1.0"
-            max="2.0"
+            max="3.0"
             step="0.1"
             value={gap}
             onChange={(e) => setGap(parseFloat(e.target.value))}
