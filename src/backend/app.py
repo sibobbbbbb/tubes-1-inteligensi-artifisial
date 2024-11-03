@@ -6,6 +6,7 @@ import time
 import matplotlib.pyplot as plt
 import io
 import base64
+from genetic import *
 
 app = Flask(__name__)
 CORS(app)
@@ -123,44 +124,54 @@ def simulated_annealing(cube, initial_temp=1000, cooling_rate=0.003):
     }
 
 # Genetic Algorithm
-def genetic_algorithm(cube, population_size=50, generations=100):
-    def create_population():
-        return [create_initial_cube() for _ in range(population_size)]
-
-    def crossover(parent1, parent2):
-        point = random.randint(1, cube.size - 1)
-        child = np.concatenate((parent1.ravel()[:point], parent2.ravel()[point:])).reshape(cube.shape)
-        return child
-
-    def mutate(individual, mutation_rate=0.01):
-        if random.random() < mutation_rate:
-            x1, y1, z1 = random.randint(0, 4), random.randint(0, 4), random.randint(0, 4)
-            x2, y2, z2 = random.randint(0, 4), random.randint(0, 4), random.randint(0, 4)
-            individual[x1, y1, z1], individual[x2, y2, z2] = individual[x2, y2, z2], individual[x1, y1, z1]
-        return individual
-
-    population = create_population()
-    objective_values = []
+def genetic_algorithm(init,n_population, n_generations=100, elitism_rate=0.1):
+    # Initial state and tracking
+    cubes = random_population(n_population - 1)
+    cubes.append(init)
     
-    for generation in range(generations):
-        population = sorted(population, key=objective_function, reverse=True)
-        next_generation = population[:10]  # Select top 10 for elitism
+    min_cost_per_generation = []
+    avg_cost_per_generation = []
+    
+    elite_size = max(1, int(n_population * elitism_rate)) 
 
-        while len(next_generation) < population_size:
-            parent1, parent2 = random.choices(population[:20], k=2)
-            child = crossover(parent1, parent2)
-            child = mutate(child)
-            next_generation.append(child)
+    for generation in range(n_generations):
+        mutation_rate = max(0.05, 0.2 * (1 - generation / n_generations))
+        
+        # Calculate fitness
+        fitness = count_fitness(cubes)
 
-        population = next_generation
-        best_value = objective_function(population[0])
-        objective_values.append(best_value)
+        costs = [calculate_cost(cube, 315) for cube in cubes]
+        sorted_indices = np.argsort(costs)
+        
+        # Track max and average fitness for each generation
+        min_cost_per_generation.append(np.min(costs))
+        avg_cost_per_generation.append(np.mean(costs))
+        
+        # Retain elites
+        elites = [cubes[i] for i in sorted_indices[-elite_size:]]
+        
+        cumulative_probabilities = count_probability_random(fitness)
+        selected_cubes = selection(cumulative_probabilities, cubes)
+        results = crossover(selected_cubes)
+        final = mutation(results, mutation_rate)
+        
+        # Create next generation
+        cubes = random_population(n_population - elite_size - 1) + list(final) + elites
+        fitness = count_fitness(cubes)
+        
+        # Select best individuals
+        cubes = [cubes[i] for i in np.argsort(fitness)[-n_population:]]
+
+    # Final best cube and cost
+    cost_and_cubes = [(calculate_cost(cube, 315), cube) for cube in cubes]
+    cost, best_array = min(cost_and_cubes, key=lambda x: x[0])
 
     return {
-        "final_state": population[0].tolist(),
-        "objective_value": best_value,
-        "objective_values": objective_values,
-        "iterations": generations
+        "initial_state": init.tolist(),
+        "final_state": best_array.tolist(),
+        "objective_value": int(cost),
+        "min_cost_per_generation": min_cost_per_generation,
+        "avg_cost_per_generation": avg_cost_per_generation,
     }
 
 # API endpoint to get the initial cube state
@@ -188,21 +199,34 @@ def run_experiment():
     elif algorithm == "simulated_annealing":
         result = simulated_annealing(cube)
     elif algorithm == "genetic_algorithm":
-        result = genetic_algorithm(cube, population_size, iterations)
-
+        result = genetic_algorithm(cube,population_size, iterations)
+    
     duration = time.time() - start_time
 
     # Generate plot
-    fig, ax = plt.subplots()
-    ax.plot(result['objective_values'])
-    ax.set_xlabel("Iterations")
-    ax.set_ylabel("Objective Function Value")
-    plt.title(f"{algorithm.capitalize()} Performance")
-
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    plot_url = base64.b64encode(img.getvalue()).decode()
+    if (algorithm != "genetic_algorithm"):
+        fig, ax = plt.subplots()
+        ax.plot(result['objective_values'])
+        ax.set_xlabel("Iterations")
+        ax.set_ylabel("Objective Function Value")
+        plt.title(f"{algorithm.capitalize()} Performance")
+        img = io.BytesIO()
+        plt.savefig(img, format='png')
+        img.seek(0)
+        plot_url = base64.b64encode(img.getvalue()).decode()
+    
+    else:
+        fig, ax = plt.subplots()
+        ax.plot(result["min_cost_per_generation"], label="Min Objective Function")
+        ax.plot(result["avg_cost_per_generation"], label="Average Objective Function")
+        ax.set_xlabel("Generasi")
+        ax.set_ylabel("Objective Function")
+        plt.legend()
+        plt.title("Genetic Algorithm - Objective Function")
+        img = io.BytesIO()
+        plt.savefig(img, format='png')
+        img.seek(0)
+        plot_url = base64.b64encode(img.getvalue()).decode()
 
     # Ensure that all numpy objects are converted to native Python types
     return jsonify({
