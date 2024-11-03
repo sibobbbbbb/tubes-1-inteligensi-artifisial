@@ -1,0 +1,3 @@
+# Mengabaikan folder pycache
+__pycache__/
+*.py[cod]

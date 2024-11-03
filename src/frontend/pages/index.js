@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import ExperimentForm from '../components/ExperimentForm';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
+import ImageModal from '../components/ImageModal';
 
 // Loading spinner component for dynamic import
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-500"></div>
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4"></div>
     </div>
   );
 }
@@ -36,10 +37,19 @@ export default function Home() {
   const [gap, setGap] = useState(1.2);
   const [loading, setLoading] = useState(false);
   const [showFinalState, setShowFinalState] = useState(false); // Toggle for final/initial state
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImageSrc, setModalImageSrc] = useState('');
+  
+  
   // Typing animation state
   const [displayedText, setDisplayedText] = useState('');
   const fullText = 'Diagonal Magic Cube';
+
+  const openModal = (src) => {
+    setModalImageSrc(src);
+    setIsModalOpen(true);
+  };
+
 
   useEffect(() => {
     let index = 0;
@@ -78,6 +88,10 @@ export default function Home() {
       });
       const result = await response.json();
       setFinalState(result.final_state); // Store the final state received from the experiment
+      
+      // Automatically switch to final state view
+      setShowFinalState(true);
+
       const resultData = {
         initialState: result.initial_state,
         finalState: result.final_state,
@@ -120,7 +134,6 @@ export default function Home() {
       {/* Sidebar */}
       <div className={`fixed top-0 right-0 h-full w-64 bg-overlayBlack shadow-lg p-4 overflow-y-auto transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 z-20`}>
 
-        
         {/* Close Button at the top of the sidebar */}
         <button onClick={() => setIsSidebarOpen(false)} className="absolute top-4 right-4">
           <AiOutlineClose size={24} />
@@ -168,15 +181,28 @@ export default function Home() {
             <p><strong>Objective Value:</strong> {experimentResult.objectiveValue}</p>
             <p><strong>Duration:</strong> {experimentResult.duration} seconds</p>
 
-            {/* Display the plot if available */}
-            {experimentResult.plot && (
-              <div className="mt-4">
-                <img src={`data:image/png;base64,${experimentResult.plot}`} alt="Performance Plot" className="w-full h-auto" />
-              </div>
-            )}
+             {/* Display the plot with click-to-expand feature */}
+             {experimentResult.plot && (
+                <div className="mt-4">
+                  <img 
+                    src={`data:image/png;base64,${experimentResult.plot}`} 
+                    alt="Performance Plot" 
+                    className="w-full h-auto cursor-pointer" 
+                    onClick={() => openModal(`data:image/png;base64,${experimentResult.plot}`)}
+                  />
+                </div>
+              )}
           </div>
         )}
       </div>
+      {/* Modal for expanded image */}
+      {isModalOpen && (
+        <ImageModal 
+          src={modalImageSrc} 
+          alt="Expanded Performance Plot" 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }
