@@ -25,15 +25,29 @@ function createTextTexture(number, backgroundColor) {
   return new THREE.CanvasTexture(canvas);
 }
 
-// Helper function to generate a random color
+
+// Helper function to generate a slightly brighter color palette
 function generateColor(index) {
   const colors = [
-    '#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33F3',
-    '#33FFF3', '#FFD433', '#D433FF', '#FF8C33', '#8C33FF',
-    '#33FF8C', '#FF3333', '#33FF33', '#3333FF', '#FF5733',
+    '#B22222', // Firebrick
+    '#228B22', // Forest Green
+    '#1E90FF', // Dodger Blue
+    '#DAA520', // Goldenrod
+    '#9932CC', // Dark Orchid
+    '#20B2AA', // Light Sea Green
+    '#CD5C5C', // Indian Red
+    '#6A5ACD', // Slate Blue
+    '#8B4513', // Saddle Brown
+    '#4682B4', // Steel Blue
+    '#2E8B57', // Sea Green
+    '#A0522D', // Sienna
+    '#6B8E23', // Olive Drab
+    '#708090', // Slate Gray
+    '#696969', // Dim Gray
   ];
   return colors[index % colors.length];
 }
+
 
 // Helper component to render each cube box with a texture that includes color and optionally a number
 function CubeBox({ position, color, number, isVisible }) {
@@ -66,7 +80,7 @@ function StarField() {
 
   useFrame(() => {
     if (stars.current) {
-      stars.current.rotation.y += 0.0002; // Slower rotation for efficiency
+      stars.current.rotation.y += 0.0005; // Slower rotation for efficiency
     }
   });
 
@@ -80,10 +94,11 @@ function StarField() {
           itemSize={3}
         />
       </bufferGeometry>
-      <pointsMaterial color="white" size={0.5} sizeAttenuation />
+      <pointsMaterial color="#FFD700" size={0.5} sizeAttenuation />
     </points>
   );
 }
+
 
 export default function MagicCube({ cubeState }) {
   const cubeSize = 5;
