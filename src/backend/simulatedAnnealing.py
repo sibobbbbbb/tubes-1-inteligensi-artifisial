@@ -16,32 +16,87 @@ def initialize_cube(n):
     return cube
 
 # Objective function to calculate the total deviation
-def calculate_total_deviation(cube, S):
-    deviation = 0
-    # Sum of each row, column, pillar (z-axis), and diagonals
-    for i in range(n):
-        deviation += abs(np.sum(cube[i, :, :]) - S)  # row sums
-        deviation += abs(np.sum(cube[:, i, :]) - S)  # column sums
-        deviation += abs(np.sum(cube[:, :, i]) - S)  # pillar sums
+# def calculate_total_deviation(cube, S):
+#     deviation = 0
+#     # Sum of each row, column, pillar (z-axis), and diagonals
+#     for i in range(n):
+#         deviation += abs(np.sum(cube[i, :, :]) - S)  # row sums
+#         deviation += abs(np.sum(cube[:, i, :]) - S)  # column sums
+#         deviation += abs(np.sum(cube[:, :, i]) - S)  # pillar sums
 
-    # Diagonals in each face (3 sets per axis)
-    for i in range(n):
-        deviation += abs(np.sum(cube[i, :, :].diagonal()) - S)  # diagonal in XY plane
-        deviation += abs(np.sum(np.fliplr(cube[i, :, :]).diagonal()) - S)
+#     # Diagonals in each face (3 sets per axis)
+#     for i in range(n):
+#         deviation += abs(np.sum(cube[i, :, :].diagonal()) - S)  # diagonal in XY plane
+#         deviation += abs(np.sum(np.fliplr(cube[i, :, :]).diagonal()) - S)
         
-        deviation += abs(np.sum(cube[:, i, :].diagonal()) - S)  # diagonal in XZ plane
-        deviation += abs(np.sum(np.fliplr(cube[:, i, :]).diagonal()) - S)
+#         deviation += abs(np.sum(cube[:, i, :].diagonal()) - S)  # diagonal in XZ plane
+#         deviation += abs(np.sum(np.fliplr(cube[:, i, :]).diagonal()) - S)
         
-        deviation += abs(np.sum(cube[:, :, i].diagonal()) - S)  # diagonal in YZ plane
-        deviation += abs(np.sum(np.fliplr(cube[:, :, i]).diagonal()) - S)
+#         deviation += abs(np.sum(cube[:, :, i].diagonal()) - S)  # diagonal in YZ plane
+#         deviation += abs(np.sum(np.fliplr(cube[:, :, i]).diagonal()) - S)
 
-    # Space diagonals (4 in total)
-    deviation += abs(np.sum([cube[i, i, i] for i in range(n)]) - S)
-    deviation += abs(np.sum([cube[i, i, n-1-i] for i in range(n)]) - S)
-    deviation += abs(np.sum([cube[i, n-1-i, i] for i in range(n)]) - S)
-    deviation += abs(np.sum([cube[n-1-i, i, i] for i in range(n)]) - S)
+#     # Space diagonals (4 in total)
+#     deviation += abs(np.sum([cube[i, i, i] for i in range(n)]) - S)
+#     deviation += abs(np.sum([cube[i, i, n-1-i] for i in range(n)]) - S)
+#     deviation += abs(np.sum([cube[i, n-1-i, i] for i in range(n)]) - S)
+#     deviation += abs(np.sum([cube[n-1-i, i, i] for i in range(n)]) - S)
 
-    return deviation
+#     return deviation
+
+def calculate_total_deviation(cube, magic_number):
+    cost = 0
+    
+    n = len(cube)
+    # 1. Hitung cost untuk setiap baris di setiap layer
+    for layer in cube:
+        for row in layer:
+            cost += abs(sum(row) - magic_number)
+    
+    # 2. Hitung cost untuk setiap kolom di setiap layer
+    for layer in cube:
+        for col in range(n):
+            column_sum = sum(layer[row][col] for row in range(n))
+            cost += abs(column_sum - magic_number)
+    
+    # 3. Hitung cost untuk setiap tiang (melintasi layer z untuk setiap (x, y) pada layer)
+    for x in range(n):
+        for y in range(n):
+            column_sum = sum(cube[z][x][y] for z in range(n))
+            cost += abs(column_sum - magic_number)
+    
+    # 4. Hitung cost untuk diagonal pada setiap bidang (xy, xz, yz)
+    # Diagonal pada bidang xy
+    for z in range(n):
+        diag1 = sum(cube[z][i][i] for i in range(n))
+        diag2 = sum(cube[z][i][n - i - 1] for i in range(n))
+        cost += abs(diag1 - magic_number)
+        cost += abs(diag2 - magic_number)
+    
+    # Diagonal pada bidang xz
+    for y in range(n):
+        diag1 = sum(cube[i][y][i] for i in range(n))
+        diag2 = sum(cube[i][y][n - i - 1] for i in range(n))
+        cost += abs(diag1 - magic_number)
+        cost += abs(diag2 - magic_number)
+    
+    # Diagonal pada bidang yz
+    for x in range(n):
+        diag1 = sum(cube[i][i][x] for i in range(n))
+        diag2 = sum(cube[i][n - i - 1][x] for i in range(n))
+        cost += abs(diag1 - magic_number)
+        cost += abs(diag2 - magic_number)
+    
+    # 5. Hitung cost untuk diagonal ruang (melintasi sudut ke sudut kubus)
+    diag1 = sum(cube[i][i][i] for i in range(n))
+    diag2 = sum(cube[i][i][n - i - 1] for i in range(n))
+    diag3 = sum(cube[i][n - i - 1][i] for i in range(n))
+    diag4 = sum(cube[i][n - i - 1][n - i - 1] for i in range(n))
+    cost += abs(diag1 - magic_number)
+    cost += abs(diag2 - magic_number)
+    cost += abs(diag3 - magic_number)
+    cost += abs(diag4 - magic_number)
+    
+    return int(cost)
 
 # Simulated Annealing algorithm
 def simulated_annealing(cube, S, max_iter=100000, initial_temp=10000, cooling_rate=0.77, threshold=0.5):
