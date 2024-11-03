@@ -18,7 +18,7 @@ export default function ExperimentForm({ onSubmit }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 mt-5 bg-abu shadow-md w-full max-w-md mx-auto flex flex-col items-center">
+    <form onSubmit={handleSubmit} className="p-4 mt-7 bg-abu shadow-md w-full max-w-md mx-auto flex flex-col items-center">
     <label className="block mb-2 font-medium w-40">
         <strong>Algorithm:</strong>
         <select

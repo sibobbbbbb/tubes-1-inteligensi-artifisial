@@ -1,4 +1,3 @@
-// pages/index.js
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import ExperimentForm from '../components/ExperimentForm';
@@ -23,6 +22,37 @@ export default function Home() {
   const [cubeState, setCubeState] = useState([]);
   const [experimentResult, setExperimentResult] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar open/close state
+
+  // Typing animation state
+  const [displayedText, setDisplayedText] = useState('');
+  const fullText = 'Diagonal Magic Cube';
+
+  useEffect(() => {
+    let index = 0;
+  
+    const typeText = () => {
+      setDisplayedText(fullText.substring(0, index + 1)); // Tampilkan teks dari awal hingga indeks saat ini
+      index += 1;
+  
+      if (index === fullText.length) {
+        // Jika sudah sampai di akhir teks, reset indeks dan teks setelah jeda
+        setTimeout(() => {
+          index = 0;
+          setDisplayedText(''); // Kosongkan teks untuk memulai kembali
+          typeText(); // Panggil lagi untuk memulai dari awal
+        }, 2000); // Jeda 1 detik sebelum mulai lagi
+      } else {
+        // Lanjutkan ke karakter berikutnya
+        setTimeout(typeText, 150); // Atur kecepatan pengetikan
+      }
+    };
+  
+    typeText(); // Mulai animasi pertama kali
+  
+    return () => setDisplayedText(''); // Bersihkan teks saat komponen di-unmount
+  }, []);
+  
+  
 
   useEffect(() => {
     // Fetch initial cube state from Flask backend
@@ -63,7 +93,12 @@ export default function Home() {
     <div className="relative w-full h-screen">
       {/* Navbar with Hamburger Icon */}
       <header className="fixed top-0 left-0 w-full bg-overlayBlack text-white flex justify-between items-center p-4 z-10">
-        <h1 className="text-2xl font-semibold">Diagonal Magic Cube</h1>
+        <h1 
+          className="text-2xl font-semibold cursor-pointer" 
+          onClick={() => window.location.reload()}
+        >
+          {displayedText}
+        </h1>
         
         {/* Hamburger Icon to toggle sidebar */}
         <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-white">
