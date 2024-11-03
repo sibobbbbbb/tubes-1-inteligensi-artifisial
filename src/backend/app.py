@@ -40,9 +40,9 @@ def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=
     elif variant == "stochastic":
         hillClimber = StochasticHC(Cube(cube.copy()))
     elif variant == "sideways":
-        hillClimber = SidewaysMovement(Cube(cube.copy(), max_sideways))
+        hillClimber = SidewaysMovement(Cube(cube.copy()), max_sideways)
     elif variant == "random_restart":
-        hillClimber = RandomRestart(Cube(cube.copy(), max_restarts))
+        hillClimber = RandomRestart(Cube(cube.copy()), max_restarts)
     else:
         raise "There is no such variant!"
     
@@ -66,9 +66,7 @@ def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=
         "duration" : duration
     }
 
-    if variant == "sideways":
-        result["sideways_moves"] = max_sideways
-    elif variant == "random_restart":
+    if variant == "random_restart":
         result["restart_number"] = hillClimber.maxRestart
         result["restart_iterations"] = hillClimber.iterationsPerRestart
 
