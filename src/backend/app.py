@@ -75,67 +75,25 @@ def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=
     return result
 
 
-
-# Simulated Annealing
 def simulated_annealing(cube, max_iter=100000, initial_temp=10000, cooling_rate=0.77, threshold=0.5):
-    current_cube = cube.copy()
-    initial_cube = cube.copy()
-    current_deviation = calculate_total_deviation(current_cube, 315)
-    best_cube = current_cube.copy()
-    best_deviation = current_deviation
-    deviations = [current_deviation]
     
-    temperature = initial_temp
-    start_time = time.time()
-    iterations = 0
-
-    for iteration in range(max_iter):
-        # Randomly select two positions to swap
-        x1, y1, z1 = np.random.randint(0, n, 3)
-        x2, y2, z2 = np.random.randint(0, n, 3)
-        while (x1, y1, z1) == (x2, y2, z2):  
-            x2, y2, z2 = np.random.randint(0, n, 3)
-
-        current_cube[x1, y1, z1], current_cube[x2, y2, z2] = current_cube[x2, y2, z2], current_cube[x1, y1, z1]
-        new_deviation = calculate_total_deviation(current_cube, 315)
-
-        if new_deviation < current_deviation:
-            current_deviation = new_deviation
-            if current_deviation < best_deviation:
-                best_deviation = current_deviation
-                best_cube = current_cube.copy()
-        elif np.exp((current_deviation - new_deviation) / temperature) > threshold :
-            current_deviation = new_deviation
-            if current_deviation < best_deviation:
-                best_deviation = current_deviation
-                best_cube = current_cube.copy()
-        else:
-            # Revert the swap if not accepted
-            current_cube[x1, y1, z1], current_cube[x2, y2, z2] = current_cube[x2, y2, z2], current_cube[x1, y1, z1]
-
-        deviations.append(current_deviation)
-
-        # Cooling schedule
-        temperature *= cooling_rate
-        if current_deviation == 0:
-            break
-
-        if temperature < 1 :
-            break
-
-        iterations = iterations + 1
-
-    end_time = time.time()
-    duration = end_time - start_time
-
+    Simulated_annealing = SimulatedAnnealing(Cube(cube.copy()), max_iter, initial_temp, cooling_rate,threshold)
+    Simulated_annealing.search()
+    final_cube = Simulated_annealing.state.cube
+    best_value = Simulated_annealing.best_value
+    array_value = Simulated_annealing.objective_values
+    duration = Simulated_annealing.duration
+    iterations = Simulated_annealing.iteration
+    
     return {
-        "initial_state" : initial_cube.tolist(),
-        "final_state": best_cube.tolist(),
-        "objective_value": best_deviation,
-        "objective_values": deviations,
+        "initial_state" : cube.tolist(),
+        "final_state": final_cube.tolist(),
+        "objective_value": best_value,
+        "objective_values": array_value,
         "duration": duration,
         "iterations": iterations
     }
+
 
 # Genetic Algorithm
 def genetic_algorithm(init,n_population, n_generations=100, elitism_rate=0.1):
