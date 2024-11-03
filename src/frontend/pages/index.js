@@ -78,11 +78,15 @@ export default function Home() {
       });
       const result = await response.json();
       setFinalState(result.final_state); // Store the final state received from the experiment
-      setExperimentResult({
+      const resultData = {
+        initialState: result.initial_state,
+        finalState: result.final_state,
         objectiveValue: result.objective_value,
         duration: result.duration.toFixed(2),
         plot: result.plot,
-      });
+      };
+      
+      setExperimentResult(resultData);
     } catch (error) {
       console.error("Failed to run experiment:", error);
     } finally {
