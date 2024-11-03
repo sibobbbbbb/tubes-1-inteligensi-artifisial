@@ -5,10 +5,12 @@ export default function ExperimentForm({ onSubmit }) {
   const [algorithm, setAlgorithm] = useState("hill_climbing");
   const [variant, setVariant] = useState("steepest_ascent");
   const [populationSize, setPopulationSize] = useState(50);
-  const [iterations, setIterations] = useState(1000);
+  const [iterations, setIterations] = useState(1000); // Iterations for Genetic Algorithm only
   const [threshold, setThreshold] = useState(0.01);
   const [temperature, setTemperature] = useState(100);
   const [coolingRate, setCoolingRate] = useState(0.95);
+  const [maxSidewaysMoves, setMaxSidewaysMoves] = useState(10); // For Sideways Move
+  const [maxRestarts, setMaxRestarts] = useState(5); // For Random Restart
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,12 +19,14 @@ export default function ExperimentForm({ onSubmit }) {
       algorithm,
       variant: algorithm === "hill_climbing" ? variant : null,
       population_size: algorithm === "genetic_algorithm" ? populationSize : null,
-      iterations: algorithm !== "simulated_annealing" ? iterations : null,
+      ...(algorithm === "genetic_algorithm" && { iterations }),
       ...(algorithm === "simulated_annealing" && {
         threshold,
         temperature,
         cooling_rate: coolingRate,
       }),
+      ...(algorithm === "hill_climbing" && variant === "sideways" && { max_sideways_moves: maxSidewaysMoves }),
+      ...(algorithm === "hill_climbing" && variant === "random_restart" && { max_restarts: maxRestarts }),
     };
 
     onSubmit(config);
@@ -53,22 +57,62 @@ export default function ExperimentForm({ onSubmit }) {
           >
             <option value="steepest_ascent">Steepest Ascent</option>
             <option value="stochastic">Stochastic</option>
-            <option value="sideways">Sideways</option>
+            <option value="sideways">Sideways Move</option>
             <option value="random_restart">Random Restart</option>
           </select>
         </label>
       )}
 
-      {algorithm === "genetic_algorithm" && (
+      {algorithm === "hill_climbing" && variant === "sideways" && (
         <label className="block mb-2 font-medium w-40">
-          <strong>Population Size:</strong>
+          <strong>Maximum Sideways Moves:</strong>
           <input
             type="number"
-            value={populationSize}
-            onChange={(e) => setPopulationSize(parseInt(e.target.value))}
+            value={maxSidewaysMoves}
+            onChange={(e) => setMaxSidewaysMoves(parseInt(e.target.value))}
             className="mt-1 p-1 border border-gray-300 rounded text-gray-800 w-full"
+            min="1"
           />
         </label>
+      )}
+
+      {algorithm === "hill_climbing" && variant === "random_restart" && (
+        <label className="block mb-2 font-medium w-40">
+          <strong>Maximum Restarts:</strong>
+          <input
+            type="number"
+            value={maxRestarts}
+            onChange={(e) => setMaxRestarts(parseInt(e.target.value))}
+            className="mt-1 p-1 border border-gray-300 rounded text-gray-800 w-full"
+            min="1"
+          />
+        </label>
+      )}
+
+      {algorithm === "genetic_algorithm" && (
+        <>
+          <label className="block mb-2 font-medium w-40">
+            <strong>Population Size:</strong>
+            <input
+              type="number"
+              value={populationSize}
+              onChange={(e) => setPopulationSize(parseInt(e.target.value))}
+              className="mt-1 p-1 border border-gray-300 rounded text-gray-800 w-full"
+              min="1"
+            />
+          </label>
+
+          <label className="block mb-2 font-medium w-40">
+            <strong>Iterations:</strong>
+            <input
+              type="number"
+              value={iterations}
+              onChange={(e) => setIterations(parseInt(e.target.value))}
+              className="mt-1 p-1 border border-gray-300 rounded text-gray-800 w-full"
+              min="1"
+            />
+          </label>
+        </>
       )}
 
       {algorithm === "simulated_annealing" && (
@@ -110,19 +154,6 @@ export default function ExperimentForm({ onSubmit }) {
             />
           </label>
         </>
-      )}
-
-      {algorithm !== "simulated_annealing" && (
-        <label className="block mb-2 font-medium w-40">
-          <strong>Iterations:</strong>
-          <input
-            type="number"
-            value={iterations}
-            onChange={(e) => setIterations(parseInt(e.target.value))}
-            className="mt-1 p-1 border border-gray-300 rounded text-gray-800 w-full"
-            min="1"
-          />
-        </label>
       )}
 
       <button
