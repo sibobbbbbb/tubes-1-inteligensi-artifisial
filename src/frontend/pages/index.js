@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import ExperimentForm from '../components/ExperimentForm';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
+import ImageModal from '../components/ImageModal';
 
 // Loading spinner component for dynamic import
 function LoadingSpinner() {
@@ -36,10 +37,19 @@ export default function Home() {
   const [gap, setGap] = useState(1.2);
   const [loading, setLoading] = useState(false);
   const [showFinalState, setShowFinalState] = useState(false); // Toggle for final/initial state
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImageSrc, setModalImageSrc] = useState('');
+  
+  
   // Typing animation state
   const [displayedText, setDisplayedText] = useState('');
   const fullText = 'Diagonal Magic Cube';
+
+  const openModal = (src) => {
+    setModalImageSrc(src);
+    setIsModalOpen(true);
+  };
+
 
   useEffect(() => {
     let index = 0;
@@ -171,15 +181,28 @@ export default function Home() {
             <p><strong>Objective Value:</strong> {experimentResult.objectiveValue}</p>
             <p><strong>Duration:</strong> {experimentResult.duration} seconds</p>
 
-            {/* Display the plot if available */}
-            {experimentResult.plot && (
-              <div className="mt-4">
-                <img src={`data:image/png;base64,${experimentResult.plot}`} alt="Performance Plot" className="w-full h-auto" />
-              </div>
-            )}
+             {/* Display the plot with click-to-expand feature */}
+             {experimentResult.plot && (
+                <div className="mt-4">
+                  <img 
+                    src={`data:image/png;base64,${experimentResult.plot}`} 
+                    alt="Performance Plot" 
+                    className="w-full h-auto cursor-pointer" 
+                    onClick={() => openModal(`data:image/png;base64,${experimentResult.plot}`)}
+                  />
+                </div>
+              )}
           </div>
         )}
       </div>
+      {/* Modal for expanded image */}
+      {isModalOpen && (
+        <ImageModal 
+          src={modalImageSrc} 
+          alt="Expanded Performance Plot" 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }
