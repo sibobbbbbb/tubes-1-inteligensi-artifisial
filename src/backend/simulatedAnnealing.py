@@ -1,25 +1,9 @@
 import numpy as np
-import random
 import matplotlib.pyplot as plt
 import time
 from cube import Cube
-
-# Define the side length of the cube
-n = 5
-# Calculate the magic constant (S) for a 5x5x5 magic cube
-S = n * (n**3 + 1) // 2
-
-# Initialize a 5x5x5 cube with values 1 to 125
-def initialize_cube(n):
-    numbers = np.arange(1, n**3 + 1)
-    np.random.shuffle(numbers)
-    cube = numbers.reshape((n, n, n))
-    return cube
-
-
-import numpy as np
 import random
-import time
+
 
 class SimulatedAnnealing:
     def __init__(self, initial_state: Cube, max_iter=100000, initial_temp=10000, cooling_rate=0.77, threshold=0.5):
@@ -33,18 +17,17 @@ class SimulatedAnnealing:
         self.iteration = 0
         self.duration = 0
         self.objective_values = [self.state.value]
+        self.stuck = 0
+        self.eValue = []
 
     def find_random_neighbor(self):
-        # Generate a random neighbor by swapping two elements
         neighbor = self.state.cube.copy()
         x1, y1, z1 = np.random.randint(0, 5, 3)
         x2, y2, z2 = np.random.randint(0, 5, 3)
         
-        # Ensure different positions for the swap
         while (x1, y1, z1) == (x2, y2, z2):
             x2, y2, z2 = np.random.randint(0, 5, 3)
         
-        # Swap elements
         neighbor[x1, y1, z1], neighbor[x2, y2, z2] = neighbor[x2, y2, z2], neighbor[x1, y1, z1]
         return Cube(neighbor)
     
@@ -66,21 +49,21 @@ class SimulatedAnnealing:
                 
                 delta = neighbor_value - self.state.value
                 acceptance_prob = np.exp(-delta / temperature)
-                
+                self.eValue.append(acceptance_prob)
                 if acceptance_prob > self.threshold:
                     self.state = neighbor
                     if neighbor_value < self.best_value:
                         self.best_state = neighbor
                         self.best_value = neighbor_value
                 else:
-                    # Revert if not accepted
+                    self.stuck += 1
                     self.state = self.state
 
             self.objective_values.append(self.state.value)
 
             temperature *= self.cooling_rate
 
-            if self.best_value == 0 or temperature < 1:
+            if self.best_value == 0 or temperature < 0.0000000000000000000000000000000000000001:
                 break
 
         end_time = time.time()

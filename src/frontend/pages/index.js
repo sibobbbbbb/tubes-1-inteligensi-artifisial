@@ -99,6 +99,8 @@ export default function Home() {
         duration: result.duration.toFixed(2),
         plot: result.plot,
         iterations: result.iterations,
+        stuck: result.stuck,
+        plot2: result.plot2
       };
       
       setExperimentResult(resultData);
@@ -182,6 +184,7 @@ export default function Home() {
             <p><strong>Objective Value:</strong> {experimentResult.objectiveValue}</p>
             <p><strong>Duration:</strong> {experimentResult.duration} seconds</p>
             <p><strong>Iterations:</strong> {experimentResult.iterations}</p>
+            {experimentResult.stuck && (<p><strong>Stuck:</strong> {experimentResult.stuck}</p>)}
 
              {/* Display the plot with click-to-expand feature */}
              {experimentResult.plot && (
@@ -191,6 +194,16 @@ export default function Home() {
                     alt="Performance Plot" 
                     className="w-full h-auto cursor-pointer" 
                     onClick={() => openModal(`data:image/png;base64,${experimentResult.plot}`)}
+                  />
+                </div>
+              )}
+              {experimentResult.plot2 && (
+                <div className="mt-4">
+                  <img 
+                    src={`data:image/png;base64,${experimentResult.plot2}`} 
+                    alt="e value Plot" 
+                    className="w-full h-auto cursor-pointer" 
+                    onClick={() => openModal(`data:image/png;base64,${experimentResult.plot2}`)}
                   />
                 </div>
               )}

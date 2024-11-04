@@ -13,10 +13,17 @@ export default function ExperimentResult({ result }) {
   
         <p><strong>Objective Value:</strong> {result.objective_value}</p>
         <p><strong>Duration:</strong> {result.duration.toFixed(2)} seconds</p>
-  
+        {result.stuck && (<p><strong>Stuck:</strong> {result.stuck}</p>)}
+
         <div className="mt-4">
           <img src={`data:image/png;base64,${result.plot}`} alt="Performance Plot" />
         </div>
+        {result.plot2 && (
+            <div className="mt-4">
+              <img src={`data:image/png;base64,${result.plot2}`} alt="Energy Values Plot" />
+            </div>
+          )}
+
       </div>
     );
   }

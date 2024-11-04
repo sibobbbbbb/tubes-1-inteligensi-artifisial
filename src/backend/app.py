@@ -84,6 +84,8 @@ def simulated_annealing(cube, max_iter=100000, initial_temp=10000, cooling_rate=
     array_value = Simulated_annealing.objective_values
     duration = Simulated_annealing.duration
     iterations = Simulated_annealing.iteration
+    stuck = Simulated_annealing.stuck
+    array_e = Simulated_annealing.eValue
     
     return {
         "initial_state" : cube.tolist(),
@@ -91,7 +93,9 @@ def simulated_annealing(cube, max_iter=100000, initial_temp=10000, cooling_rate=
         "objective_value": best_value,
         "objective_values": array_value,
         "duration": duration,
-        "iterations": iterations
+        "iterations": iterations,
+        "stuck" : stuck,
+        "e_values" : array_e  
     }
 
 
@@ -128,7 +132,7 @@ def run_experiment():
     if algorithm == "hill_climbing":
         result = hill_climbing(cube, variant=data.get("variant", "steepest_ascent"))
     elif algorithm == "simulated_annealing":
-        result = simulated_annealing(cube, 10000, temperature, cooling_rate, threshold)
+        result = simulated_annealing(cube, 100000, temperature, cooling_rate, threshold)
     elif algorithm == "genetic_algorithm":
         result = genetic_algorithm(cube,population_size, iterations)
     
@@ -159,7 +163,29 @@ def run_experiment():
         img.seek(0)
         plot_url = base64.b64encode(img.getvalue()).decode()
 
+    if (algorithm == "simulated_annealing"):
+        fig, ax = plt.subplots()
+        ax.plot(result['e_values'])
+        ax.set_xlabel("Iterations")
+        ax.set_ylabel("e Value")
+        plt.title(f"{algorithm.capitalize()} Performance")
+        img = io.BytesIO()
+        plt.savefig(img, format='png')
+        img.seek(0)
+        plot_url2 = base64.b64encode(img.getvalue()).decode()
+        return jsonify({
+            "initial_state": initial_state.tolist(),  # Convert numpy array to list
+            "final_state": np.array(result['final_state']).tolist(),  # Ensure final_state is a list
+            "objective_value": int(result['objective_value']),  # Convert numpy int to native int
+            "duration": float(duration),  # Convert to native float
+            "plot": plot_url,
+            "iterations": result["iterations"],  # Ensure iterations
+            "plot2": plot_url2,
+            "stuck": result['stuck']
+        })
+
     # Ensure that all numpy objects are converted to native Python types
+
     return jsonify({
         "initial_state": initial_state.tolist(),  # Convert numpy array to list
         "final_state": np.array(result['final_state']).tolist(),  # Ensure final_state is a list
