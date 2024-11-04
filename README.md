@@ -70,5 +70,5 @@ $ cd tubes-1-inteligensi-artifisial
 | :------: | :-----------------------: | :-------: | :--------------: | 
 | 13522142 |   Farhan Raditya Aji    |    K03    | Genetic Algorithm |
 | 13522146 |   Muhammad Zaidan S. R.    |    K03    | Frontend Web |
-| 13522142 |   Rafif Ardhinto Ichwantoro    |    K03    | Simulated Annealing |
+| 13522159 |   Rafif Ardhinto Ichwantoro    |    K03    | Simulated Annealing |
 | 13522160 |   Rayhan Ridhar Rahman    |    K03    | Hill Climbing Algorithm |
