@@ -6,7 +6,7 @@ import time
 import matplotlib.pyplot as plt
 import io
 import base64
-from genetic import *
+from geneticAlgorithm import *
 from simulatedAnnealing import *
 from hillClimbing import *
 
@@ -96,56 +96,9 @@ def simulated_annealing(cube, max_iter=100000, initial_temp=10000, cooling_rate=
 
 
 # Genetic Algorithm
-def genetic_algorithm(init,n_population, n_generations=100, elitism_rate=0.1):
-    # Initial state and tracking
-    cubes = random_population(n_population - 1)
-    cubes.append(init)
-    
-    min_cost_per_generation = []
-    avg_cost_per_generation = []
-    
-    elite_size = max(1, int(n_population * elitism_rate)) 
-
-    for generation in range(n_generations):
-        mutation_rate = max(0.05, 0.2 * (1 - generation / n_generations))
-        
-        # Calculate fitness
-        fitness = count_fitness(cubes)
-
-        costs = [calculate_cost(cube, 315) for cube in cubes]
-        sorted_indices = np.argsort(costs)
-        
-        # Track max and average fitness for each generation
-        min_cost_per_generation.append(np.min(costs))
-        avg_cost_per_generation.append(np.mean(costs))
-        
-        # Retain elites
-        elites = [cubes[i] for i in sorted_indices[-elite_size:]]
-        
-        cumulative_probabilities = count_probability_random(fitness)
-        selected_cubes = selection(cumulative_probabilities, cubes)
-        results = crossover(selected_cubes)
-        final = mutation(results, mutation_rate)
-        
-        # Create next generation
-        cubes = random_population(n_population - elite_size - 1) + list(final) + elites
-        fitness = count_fitness(cubes)
-        
-        # Select best individuals
-        cubes = [cubes[i] for i in np.argsort(fitness)[-n_population:]]
-
-    # Final best cube and cost
-    cost_and_cubes = [(calculate_cost(cube, 315), cube) for cube in cubes]
-    cost, best_array = min(cost_and_cubes, key=lambda x: x[0])
-
-    return {
-        "iterations": n_generations,
-        "initial_state": init.tolist(),
-        "final_state": best_array.tolist(),
-        "objective_value": int(cost),
-        "min_cost_per_generation": min_cost_per_generation,
-        "avg_cost_per_generation": avg_cost_per_generation,
-    }
+def genetic_algorithm(cube,n_population, n_generations):
+    genetic = GeneticAlgorithm(Cube(cube.copy()),n_population, n_generations)
+    return genetic.run()
 
 # API endpoint to get the initial cube state
 @app.route('/api/cube-state', methods=['GET'])
