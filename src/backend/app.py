@@ -34,7 +34,7 @@ def generate_neighbor(cube):
     return neighbor
 
 # Hill-Climbing Algorithm Variants
-def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=8):
+def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=5):
     if variant == "steepest_ascent":
         hillClimber = SteepestAscent(Cube(cube.copy()))
     elif variant == "stochastic":
@@ -171,7 +171,7 @@ def run_experiment():
     start_time = time.time()
 
     if algorithm == "hill_climbing":
-        result = hill_climbing(cube, variant=data.get("variant", "steepest_ascent"))
+        result = hill_climbing(cube, variant=data.get("variant", "steepest_ascent"), max_sideways=data.get("max_sideways_moves", 5), max_restarts=data.get("max_restarts", 5))
     elif algorithm == "simulated_annealing":
         result = simulated_annealing(cube, 10000, temperature, cooling_rate, threshold)
     elif algorithm == "genetic_algorithm":
