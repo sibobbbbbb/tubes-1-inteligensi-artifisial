@@ -34,15 +34,15 @@ def generate_neighbor(cube):
     return neighbor
 
 # Hill-Climbing Algorithm Variants
-def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=8):
+def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=5):
     if variant == "steepest_ascent":
         hillClimber = SteepestAscent(Cube(cube.copy()))
     elif variant == "stochastic":
         hillClimber = StochasticHC(Cube(cube.copy()))
     elif variant == "sideways":
-        hillClimber = SidewaysMovement(Cube(cube.copy(), max_sideways))
+        hillClimber = SidewaysMovement(Cube(cube.copy()), max_sideways)
     elif variant == "random_restart":
-        hillClimber = RandomRestart(Cube(cube.copy(), max_restarts))
+        hillClimber = RandomRestart(Cube(cube.copy()), max_restarts)
     else:
         raise "There is no such variant!"
     
@@ -66,9 +66,7 @@ def hill_climbing(cube, variant="steepest_ascent", max_sideways=5, max_restarts=
         "duration" : duration
     }
 
-    if variant == "sideways":
-        result["sideways_moves"] = max_sideways
-    elif variant == "random_restart":
+    if variant == "random_restart":
         result["restart_number"] = hillClimber.maxRestart
         result["restart_iterations"] = hillClimber.iterationsPerRestart
 
@@ -130,7 +128,7 @@ def run_experiment():
     start_time = time.time()
 
     if algorithm == "hill_climbing":
-        result = hill_climbing(cube, variant=data.get("variant", "steepest_ascent"))
+        result = hill_climbing(cube, variant=data.get("variant", "steepest_ascent"), max_sideways=data.get("max_sideways_moves", 5), max_restarts=data.get("max_restarts", 5))
     elif algorithm == "simulated_annealing":
         result = simulated_annealing(cube, 100000, temperature, cooling_rate, threshold)
     elif algorithm == "genetic_algorithm":

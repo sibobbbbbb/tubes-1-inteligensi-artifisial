@@ -46,7 +46,7 @@ class HillClimbing:
         x2, y2, z2 = random.randint(0, 4), random.randint(0, 4), random.randint(0, 4)
         neighbor[x1, y1, z1], neighbor[x2, y2, z2] = neighbor[x2, y2, z2], neighbor[x1, y1, z1]
 
-        return neighbor
+        return Cube(neighbor)
 
     def search(self):
         raise NotImplementedError("Subclasses should implement this method")
@@ -69,6 +69,9 @@ class SteepestAscent(HillClimbing):
                 success = False
 
             self.objectiveValues.append(self.state.value)
+
+            if self.state.value == 0:
+                break
 
 class SidewaysMovement(HillClimbing):
     def __init__(self, initial_state : Cube, maxSidewaysMoves = 4):
@@ -95,8 +98,11 @@ class SidewaysMovement(HillClimbing):
 
             self.objectiveValues.append(self.state.value)
 
+            if self.state.value == 0:
+                break
+
 class StochasticHC(HillClimbing):
-    def __init__(self, initialState: Cube, nmax = 50):
+    def __init__(self, initialState: Cube, nmax = 100):
         super().__init__(initialState)
         self.nmax = nmax
 
@@ -118,7 +124,7 @@ class StochasticHC(HillClimbing):
             
 
 class RandomRestart(HillClimbing):
-    def __init__(self, initialState: Cube, maxRestart = 8):
+    def __init__(self, initialState: Cube, maxRestart = 5):
         super().__init__(initialState)
         self.maxRestart = maxRestart
         self.iterationsPerRestart = []
@@ -126,34 +132,37 @@ class RandomRestart(HillClimbing):
     def search(self):
         bestOverall : Cube = None
         bestOverallValue = float('inf')
-        self.objectiveValues.append(self.state.value)
 
-        nmax = 50
+        nmax = 30
 
         for i in range(self.maxRestart):
             if i > 0:
                 self.state = Cube()
 
+            self.objectiveValues.append(self.state.value)
+
             currentIterations = 0
 
-            success = True
-            
-            while success  and currentIterations < nmax:
+            while currentIterations < nmax:
                 currentIterations += 1
-                neighbor : Cube = self.find_best_neighbor()
 
-                if self.state.value > neighbor.value:
+                neighbor = self.find_best_neighbor()
+
+                if neighbor.value < self.state.value:
                     self.state = neighbor
+                    self.objectiveValues.append(self.state.value)
                 else:
-                    success = False
+                    self.objectiveValues.append(self.state.value)
+                    break
 
-                self.objectiveValues.append(self.state.value)
-            
             self.iterationsPerRestart.append(currentIterations)
 
             if bestOverallValue > self.state.value:
-                bestOverall = self.state
+                bestOverall = self.state.copy()
                 bestOverallValue = self.state.value
+                
+            if bestOverallValue == 0:
+                break
 
         self.state = bestOverall
-        self.iteration = sum(self.iterationsPerRestart)
+        self.iteration = len(self.objectiveValues)
